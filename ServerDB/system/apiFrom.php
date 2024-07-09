@@ -30,6 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 '/\?>/',  // Remove 
                 '/{/',    // Remove 
                 '/}/',    // Remove 
+                '/<script>/', // Remove 
+                '/<script/', // Remove 
                 '/%%/'    // Remove 
             ];
             return preg_replace($patterns, '', $data);
@@ -50,6 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $url_politica = filter_input(INPUT_POST, 'url_politica', FILTER_SANITIZE_URL) ?? '';
         $ip_servidor = filter_input(INPUT_POST, 'ip_servidor', FILTER_SANITIZE_STRING) ?? '';
         $data_hora = filter_input(INPUT_POST, 'data_hora', FILTER_SANITIZE_STRING) ?? '';
+        
+        // Mantem o codigo html para futura apresentação
         //$texto_da_politica = filter_input(INPUT_POST, 'texto_da_politica', FILTER_SANITIZE_STRING) ?? '';
         $texto_da_politica = manual_sanitize($_POST['texto_da_politica']);
 
