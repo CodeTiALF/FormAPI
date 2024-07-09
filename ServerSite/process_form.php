@@ -34,7 +34,7 @@
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Endereço da API
-    $url_API = 'https://[ServerDB]/FormAPI/apiFromPublic.php';
+    $url_API = 'https://apiformsite.imobiliariacidadeimoveis.com.br/FormAPI/apiFromPublic.php';
 
     // Função para sanitizar dados manualmente
     function manual_sanitize($data) {
@@ -43,8 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             '/\?>/',  // Remove 
             '/{/',    // Remove 
             '/}/',    // Remove 
-            '/</',    // Remove 
-            '/>/',    // Remove 
             '/%%/'    // Remove 
         ];
         return preg_replace($patterns, '', $data);
@@ -78,13 +76,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $url_site = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 
     // URL completa da política de privacidade
-    $url_politica = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/politica.html";
+    // $url_politica = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/politica.html";
+    $url_politica = "https://produtos.imobiliariacidadeimoveis.com.br/privacidade.php";
 
     // IP do servidor
     $ip_servidor = $_SERVER['SERVER_ADDR'];
 
     // Carrega o texto da política de privacidade
-    $texto_da_politica = file_get_contents('politica.html');
+    $texto_da_politica = file_get_contents($url_politica);
 
     // Gerar chave de criptografia a partir da hora, minuto e segundo
     $hora_minuto_segundo = date("His");  // Obtém apenas a hora, minuto e segundo
@@ -135,11 +134,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($response === false) {
         $error = error_get_last();
-        echo "Erro ao enviar os dados: " . $error['message'] . "<br><br>";
+        $status = 'erro';
+        $message =  "Erro ao enviar os dados: " . $error['message'] . " (" .$dominio_site . ")";
     } else {
         // TODO: Testar se o servidor ou o arquivo existe
-        echo "Resposta do servidor: " . $response . " - " .$dominio_site;
+        $status = 'sucesso';
+        $message =  "Resposta do servidor: " . $response . " (" .$dominio_site . ")";
+        
     }
-
+    // Redireciona para a URL especificada com o status
+    header("Location: https://apiformsite.imobiliariacidadeimoveis.com.br/FormAPI/form.html?status=$status&message=$message");
+    exit();
 }
 ?>
