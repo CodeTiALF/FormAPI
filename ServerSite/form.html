@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulário de Contato</title>
+</head>
+<body>
+    <h1>Formulário de Contato</h1>
+    <form action="process_form.php" method="post">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" maxlength="50" required><br><br>
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" maxlength="50" required><br><br>
+        <label for="telefone">Telefone:</label>
+        <input type="text" id="telefone" name="telefone" maxlength="15" required><br><br>
+        <label for="mensagem">Mensagem:</label><br>
+        <textarea id="mensagem" name="mensagem" maxlength="1000" required></textarea><br><br>
+        <label for="consentimento">
+            <input type="checkbox" id="consentimento" name="consentimento" required>
+            Eu concordo com a coleta e o tratamento dos meus dados conforme descrito na 
+            <a href="politica.html" target="_blank">Política de Privacidade</a>.
+        </label><br><br>
+        <input type="submit" value="Enviar">
+    </form>
+    <p>Consulte nossa <a href="politica.html" target="_blank">Política de Privacidade</a></p>
+</body>
+</html>
