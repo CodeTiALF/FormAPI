@@ -34,7 +34,7 @@
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Endereço da API
-    $url_API = 'https://[site]/FormAPI/apiFromPublic.php';
+    $url_API = 'https://[ServerDB]/FormAPI/apiFromPublic.php';
 
     // Função para sanitizar dados manualmente
     function manual_sanitize($data) {
