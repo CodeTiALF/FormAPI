@@ -1,1 +1,1 @@
-<?php include "../../system/FormAPI/process_form.php"; ?>
+<?php include "../../system/process_form.php"; ?>
