@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // URL completa da política de privacidade
     // $url_politica = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/politica.html";
-    $url_politica = "https://produtos.imobiliariacidadeimoveis.com.br/privacidade.php";
+    $url_politica = "https://[site]/privacidade.php";
 
     // IP do servidor
     $ip_servidor = $_SERVER['SERVER_ADDR'];
