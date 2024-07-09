@@ -190,7 +190,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     // echo "Nenhum dado recebido.";
     // Redireciona para a URL especificada
-    header("Location: https://imobiliariacidadeimoveis.com.br");
+    header("Location: https://[site].com.br");
     exit();
 }
 
