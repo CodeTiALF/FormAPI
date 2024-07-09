@@ -4,6 +4,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Verificar se o IP do visitante é permitido
     $ip_visitante = $_SERVER['REMOTE_ADDR'];
     include ".config.php";
+
     if ($ip_visitante !== $ip_liberado) {
         die("Acesso negado. Seu IP não está autorizado a enviar este formulário.");
     } else {
@@ -11,9 +12,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function decrypt_data($data, $chave, $cipher) {
             return openssl_decrypt($data, $cipher, $chave, 0);
         }
-        
+
+        // Função para validar dados
+        function validar_dados($dados) {
+            foreach ($dados as $key => $value) {
+                if (empty($value)) {
+                    return "Erro: O campo '$key' está vazio.";
+                }
+            }
+            return null;
+        }
+
         // Cria uma conexão mysqli
-        $mysqli = new mysqli($host, $user, $pass, $db);
+        $mysqli = new mysqli($host, $user, $pass, $db, $port);
         
         // Verifica se houve erro na conexão
         if ($mysqli->connect_error) {
@@ -26,18 +37,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Algoritmo de criptografia
         $cipher = "aes-256-cbc";
     
-        // Receber os dados do formulário e descriptografar
+        // Receber os dados do formulário
         $encrypted_nome = $_POST['encrypted_nome'] ?? '';
         $encrypted_email = $_POST['encrypted_email'] ?? '';
         $encrypted_telefone = $_POST['encrypted_telefone'] ?? '';
         $encrypted_mensagem = $_POST['encrypted_mensagem'] ?? '';
         $encrypted_ip = $_POST['encrypted_ip'] ?? '';
+        $dominio_site = $_POST['dominio_site'] ?? '';
         $url_origem = $_POST['url_origem'] ?? '';
         $url_site = $_POST['url_site'] ?? '';
         $url_politica = $_POST['url_politica'] ?? '';
         $ip_servidor = $_POST['ip_servidor'] ?? '';
         $data_hora = $_POST['data_hora'] ?? '';
         $texto_da_politica = $_POST['texto_da_politica'] ?? '';
+
+        // Validar os dados recebidos
+        $erro_validacao = validar_dados([
+            'encrypted_nome' => $encrypted_nome,
+            'encrypted_email' => $encrypted_email,
+            'encrypted_telefone' => $encrypted_telefone,
+            'encrypted_mensagem' => $encrypted_mensagem,
+            'encrypted_ip' => $encrypted_ip,
+            'dominio_site' => $dominio_site,
+            'url_origem' => $url_origem,
+            'url_site' => $url_site,
+            'url_politica' => $url_politica,
+            'ip_servidor' => $ip_servidor,
+            'data_hora' => $data_hora,
+            'texto_da_politica' => $texto_da_politica
+        ]);
+
+        if ($erro_validacao) {
+            echo $erro_validacao;
+            exit;
+        }
     
         // Captura a chave de criptografia a partir da hora, minuto e segundo
         $hora_minuto_segundo = date("His", strtotime($data_hora)); // Pega apenas horas, minutos e segundos
@@ -48,11 +81,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $telefone = decrypt_data($encrypted_telefone, $chave, $cipher);
         $mensagem = decrypt_data($encrypted_mensagem, $chave, $cipher);
         $ip = decrypt_data($encrypted_ip, $chave, $cipher);
-    
+
         // Verificar se houve um envio recente (nos últimos 15 minutos) deste IP
-        $stmt_check = $mysqli->prepare('
-            SELECT data_hora FROM leads_site_formulario WHERE ip = ? ORDER BY data_hora DESC LIMIT 1
-        ');
+        $stmt_check = $mysqli->prepare("
+            SELECT data_hora FROM leads_site_formulario 
+            WHERE CAST(AES_DECRYPT(ip, UNHEX(SHA2('$chave_banco', 256))) AS CHAR(45)) = ? 
+            ORDER BY data_hora DESC LIMIT 1
+        ");
         $stmt_check->bind_param('s', $ip);
         $stmt_check->execute();
         $stmt_check->bind_result($last_submission);
@@ -69,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($interval < 60) {
                 $mensagem_limite = "Você já enviou um formulário no último minuto. Por favor, tente novamente mais tarde.";
             } else {
-                $minutos_limite = ceil($segundos_limite / 60); // Arredonda para cima o valor em minutos
+                $minutos_limite = ceil($interval / 60); // Arredonda para cima o valor em minutos
                 $mensagem_limite = "Você já enviou um formulário nos últimos $minutos_limite minutos. Por favor, tente novamente mais tarde.";
             }
         }
@@ -78,19 +113,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo $mensagem_limite;
         } else {
             // Preparar a query SQL para inserir os dados no banco
-            $stmt = $mysqli->prepare('
+            $stmt = $mysqli->prepare("
                 INSERT INTO leads_site_formulario (
-                    nome, email, telefone, mensagem, ip, url_origem, url_site, url_politica, ip_servidor, data_hora, texto_da_politica
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ');
+                    nome, email, telefone, mensagem, ip, dominio, url_origem, url_site, url_politica, ip_servidor, data_hora, texto_da_politica
+                ) VALUES (
+                    AES_ENCRYPT(?, UNHEX(SHA2('$chave_banco', 256))),
+                    AES_ENCRYPT(?, UNHEX(SHA2('$chave_banco', 256))),
+                    AES_ENCRYPT(?, UNHEX(SHA2('$chave_banco', 256))),
+                    AES_ENCRYPT(?, UNHEX(SHA2('$chave_banco', 256))),
+                    AES_ENCRYPT(?, UNHEX(SHA2('$chave_banco', 256))),
+                    ?, ?, ?, ?, ?, ?, ?
+                )
+            ");
     
             // Vincular os parâmetros
-            $stmt->bind_param('sssssssssss', 
+            $stmt->bind_param('ssssssssssss', 
                 $nome, 
                 $email, 
                 $telefone, 
                 $mensagem, 
                 $ip, 
+                $dominio_site,
                 $url_origem, 
                 $url_site, 
                 $url_politica, 
@@ -108,7 +151,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }    
 } else {
-    echo "Nenhum dado recebido.";
+    // echo "Nenhum dado recebido.";
+    // Redireciona para a URL especificada
+    header("Location: https://imobiliariacidadeimoveis.com.br");
+    exit();
 }
 
 // Fecha a conexão
