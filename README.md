@@ -2,16 +2,16 @@
 Formulário do Cliente gravando em servidor de banco de dados externo.
 
 ServerDB 
-  > public_html
-      > apiFrom
+  |- public_html
+      |- apiFrom
           - apiFrom.php
-  > system
+  |- system
       - .config.php
       - apiFrom.php
 
  ServerSite
-   > public_html
+   |- public_html
       - from.html
       - process_form.php
-   > system
+   |- system
       - process_form.php
